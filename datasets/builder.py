@@ -57,6 +57,8 @@ class DatasetBuilder:
         df = self.build_text_features(df)
         df = self.filter_data(df)
 
+        df = df.drop_duplicates(subset=["text"])
+
         return df[[
             "title",
             "company",

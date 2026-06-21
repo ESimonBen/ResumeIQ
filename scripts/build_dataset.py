@@ -7,7 +7,7 @@ from config.paths import PROCESSED_DIR
 
 def main():
     builder = DatasetBuilder()
-    filter = DatasetFilter(min_label_samples=3)
+    filterer = DatasetFilter(min_label_samples=3)
 
     df = builder.build_dataset()
 
@@ -15,13 +15,13 @@ def main():
     df["label"] = df.apply(label_job, axis=1)
 
     print("Raw label distribution:")
-    filter.print_distribution(df, "Raw dataset")
+    filterer.print_distribution(df, "Raw dataset")
 
     # Filter
-    df = filter.filter_labels(df)
+    df = filterer.filter_labels(df)
 
     print("\nFiltered label distribution:")
-    filter.print_distribution(df, "Filtered dataset")
+    filterer.print_distribution(df, "Filtered dataset")
 
     # Split
     train, val, test = split_dataset(df)
