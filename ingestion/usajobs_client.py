@@ -52,3 +52,6 @@ class USAJobsClient:
             all_jobs.extend(jobs)
 
         return all_jobs
+
+    def fetch_keyword(self, keyword: str, max_pages : int = 5):
+        return self.fetch_all(keyword, max_pages=max_pages)
