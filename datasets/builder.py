@@ -1,4 +1,5 @@
 # builder.py
+import re
 import sqlite3
 import pandas as pd
 from config.paths import DB_PATH, DATASET_PATH
@@ -14,39 +15,77 @@ class DatasetBuilder:
         return df
 
     def clean_text(self, text):
-        if not text:
+        if pd.isna(text):
             return ""
 
-        return text.lower().replace("\n", " ").strip()
+        text = str(text)
+        text = text.lower()
+        text = text.replace("\n", " ")
+        text = re.sub(r"\s+", " ", text)
+
+        return text.strip()
 
     def clean_dataframe(self, df):
         df = df.copy()
 
-        df["title"] = df["title"].fillna("").apply(self.clean_text)
-        df["description"] = df["description"].fillna("").apply(self.clean_text)
-        df["company"] = df["company"].fillna("").apply(self.clean_text)
-        df["location"] = df["location"].fillna("").apply(self.clean_text)
+        columns = [
+
+            "title",
+            "company",
+            "location",
+            "description"
+
+        ]
+
+        for column in columns:
+            df[column] = (
+
+                df[column]
+                .fillna("")
+                .apply(self.clean_text)
+
+            )
 
         return df
 
-    def build_text_features(self, df):
+    def normalize_dataframe(self, df):
+        df = df.copy()
+
+        df["source"] = df["source"].fillna("UNKNOWN")
+        df["company"] = df["company"].replace("", "Unknown")
+
+        return df
+
+    def build_text(self, df):
         df = df.copy()
 
         df["text"] = (
-            df["title"] + " " +
-            df["title"] + " " +
-            df["description"]
+            df["title"] + " " + df["company"] + " "
+            + df["location"] + " " + df["description"]
         )
 
         df["text"] = df["text"].apply(self.clean_text)
 
         return df
 
+    def remove_duplicates(self, df):
+        return df.drop_duplicates(subset=["text"]).reset_index(drop=True)
+
     def filter_data(self, df):
         df = df.copy()
 
         # Remove empty rows
-        df = df[df["text"].str.len() > 10]
+        df = df[df["text"].str.len() >= 20]
+        df = df[df["title"].str.len() > 1]
+
+        return df
+
+    def build_text_features(self, df):
+        df = df.copy()
+
+        df["text"] = df.apply(self.build_text, axis=1)
+
+        df["text"] = df["text"].apply(self.clean_text)
 
         return df
 
@@ -54,18 +93,12 @@ class DatasetBuilder:
         df = self.load_raw_jobs()
 
         df = self.clean_dataframe(df)
+        df = self.normalize_dataframe(df)
         df = self.build_text_features(df)
+        df = self.remove_duplicates(df)
         df = self.filter_data(df)
 
-        df = df.drop_duplicates(subset=["text"])
-
-        return df[[
-            "title",
-            "company",
-            "location",
-            "description",
-            "text"
-        ]]
+        return df
 
     def save_dataset(self, df, path=DATASET_PATH):
         path.parent.mkdir(parents=True, exist_ok=True)
