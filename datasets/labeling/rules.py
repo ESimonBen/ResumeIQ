@@ -1,35 +1,4 @@
 # rules.py
-
-TITLE_WEIGHT = 5
-
-TEXT_WEIGHT = 2
-
-MIN_DOMAIN_SCORE = 5
-
-MIN_FAMILY_SCORE = 5
-
-MIN_ROLE_SCORE = 4
-
-MIN_CONFIDENCE = 0.40
-
-IGNORE_WORDS = {
-    "intern",
-    "full-time",
-    "part-time",
-    "entry level",
-    "immediate hire",
-    "apply now"
-}
-
-TITLE_ALIASES = {
-    "swe": "software engineer",
-    "software developer": "software engineer",
-    "software programmer": "software engineer",
-    "devops engineer": "cloud engineer",
-    "ml engineer": "machine learning engineer",
-    "hr specialist": "human resources"
-}
-
 DOMAINS = [
     "TECHNICAL",
     "BUSINESS",
