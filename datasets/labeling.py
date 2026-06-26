@@ -8,6 +8,99 @@ DOMAINS = [
     "GOVERNMENT",
 ]
 
+DOMAIN_KEYWORDS = {
+    "TECHNICAL": {
+        "title": [
+            "software engineer",
+            "developer",
+            "programmer",
+            "it specialist",
+            "cybersecurity",
+            "data scientist"
+        ],
+        "text": [
+            "python",
+            "java",
+            "sql",
+            "cloud",
+            "aws",
+            "linux"
+        ]
+    },
+
+    "NON_TECHNICAL": {
+        "title": [
+            "assistant",
+            "administrator",
+            "finance specialist",
+            "human resources"
+        ],
+        "text": [
+            "accounting",
+            "budget",
+            "procurement",
+            "recruitment"
+        ]
+    },
+
+    "HEALTHCARE": {
+        "title": [
+            "nurse",
+            "physician",
+            "medical officer",
+            "health scientist"
+        ],
+        "text": [
+            "patient",
+            "clinical",
+            "hospital",
+            "diagnosis",
+            "healthcare"
+        ]
+    },
+
+    "LEGAL": {
+        "title": [
+            "attorney",
+            "law",
+            "paralegal",
+            "judge",
+            "prosecutor",
+            "public defender",
+            "legal counsel",
+            "compliance officer",
+            "magistrate"
+        ],
+        "text": [
+            "litigation",
+            "legal research",
+            "court",
+            "case law",
+            "compliance",
+            "regulation",
+            "prosecution",
+            "defense",
+            "criminal law",
+            "civil law"
+        ]
+    },
+
+    "GOVERNMENT": {
+        "title": [
+            "program analyst",
+            "policy analyst",
+            "intelligence analyst"
+        ],
+        "text": [
+            "federal",
+            "grant",
+            "mission",
+            "public affairs",
+            "government"
+        ]
+    }
+}
+
 SUBCLASSES = {
     "TECHNICAL": {
         "Software Engineering": ["software", "backend", "frontend", "api"],
@@ -38,82 +131,32 @@ SUBCLASSES = {
         "Litigation": ["litigation", "court", "case law"],
         "Compliance": ["compliance", "regulation"],
         "Legal Research": ["legal research", "briefing"],
+        "Attorney": ["attorney", "defense", "prosecution"],
     }
 }
-
-# KEYWORDS = {
-#     "TECHNICAL": {
-#         "title": ["software", "developer", "engineer", "cybersecurity", "cloud"],
-#         "text": ["python", "java", "api", "backend", "linux", "sql"]
-#     },
-#
-#     "HEALTHCARE": {
-#         "title": ["nurse", "physician", "medical", "clinical"],
-#         "text": ["patient", "hospital", "health", "diagnosis"]
-#     },
-#
-#     "LEGAL": {
-#         "title": ["attorney", "law", "legal", "compliance"],
-#         "text": ["litigation", "regulation", "case law"]
-#     },
-#
-#     "GOVERNMENT_SPECIALIZED": {
-#         "title": ["program analyst", "policy", "intelligence"],
-#         "text": ["grant", "federal", "public affairs", "mission"]
-#     },
-#
-#     "NON_TECHNICAL": {
-#         "title": ["assistant", "clerk", "hr", "finance", "budget"],
-#         "text": ["procurement", "accounting", "administration"]
-#     }
-# }
-
-# def score_job(row):
-#     title = row.get("title", "").lower()
-#     text = row.get("description", "").lower()
-#
-#     scores = {label: 0 for label in KEYWORDS}
-#
-#     for label, groups in KEYWORDS.items():
-#         for kw in groups["title"]:
-#             if kw in title:
-#                 scores[label] += 5
-#
-#         for kw in groups["text"]:
-#             if kw in text:
-#                 scores[label] += 2
-#
-#         return scores
 
 def predict_domain(row):
     title = row.get("title", "").lower()
     text = row.get("description", "").lower()
 
-    scores = {
-        "TECHNICAL": 0,
-        "NON_TECHNICAL": 0,
-        "HEALTHCARE": 0,
-        "LEGAL": 0,
-        "GOVERNMENT": 0,
-    }
+    scores = {domain: 0 for domain in DOMAIN_KEYWORDS}
 
-    # strong signals only
-    if any(k in title for k in ["software", "developer", "engineer"]):
-        scores["TECHNICAL"] += 5
+    for domain, groups in DOMAIN_KEYWORDS.items():
 
-    if any(k in title for k in ["nurse", "medical", "physician"]):
-        scores["HEALTHCARE"] += 5
+        for kw in groups["title"]:
+            if kw in title:
+                scores[domain] += 5
 
-    if any(k in title for k in ["attorney", "law", "legal"]):
-        scores["LEGAL"] += 5
+        for kw in groups["text"]:
+            if kw in text:
+                scores[domain] += 2
 
-    if any(k in title for k in ["policy", "program analyst", "government"]):
-        scores["GOVERNMENT"] += 5
+    best = max(scores, key=scores.get)
 
-    if any(k in title for k in ["assistant", "clerk", "hr", "finance"]):
-        scores["NON_TECHNICAL"] += 5
+    if scores[best] == 0:
+        return "UNKNOWN"
 
-    return max(scores, key=scores.get)
+    return best
 
 def predict_subclass(row, domain):
     title = row.get("title", "").lower()

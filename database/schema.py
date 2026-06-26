@@ -1,27 +1,35 @@
 # schema.py
 
 JOBS_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS jobs (
-    id TEXT PRIMARY KEY,
+CREATE TABLE jobs (
 
-    -- Core job fields
+    -- Identity
+    id TEXT PRIMARY KEY,
+    source_id TEXT,
+
+    -- Job information
     title TEXT,
     company TEXT,
     location TEXT,
     description TEXT,
 
-    -- ML-ready fields (future-proofing)
+    -- Processed text
     text_raw TEXT,
     text_clean TEXT,
-    label TEXT,
 
-    -- Data lineage (VERY important)
+    -- Labels
+    domain TEXT,
+    subclass TEXT,
+    label_source TEXT,
+    label_confidence REAL,
+
+    -- Provenance
     source TEXT,
     search_keyword TEXT,
     date_posted TEXT,
     retrieved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    -- Debug / reproducibility
+    -- Original API response
     raw_json TEXT
 );
 """

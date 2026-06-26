@@ -32,8 +32,14 @@ class USAJobsClient:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             raise RuntimeError(
-                f"USAJobs API request failed | "
-                f"keyword={keyword} page={page} status={response.status_code}"
+                f"""
+                USAJobs request failed
+                
+                Status: {response.status_code}
+                
+                Response:
+                {response.text}
+                """
             ) from e
 
         return response.json()

@@ -1,9 +1,10 @@
 # collect_jobs.py
-from ingestion.usajobs_client import USAJobsClient
-from ingestion.collector import JobCollector
-from ingestion.transformer import transform_job
-from ingestion.loader import insert_jobs
 from database.db import Database
+from ingestion.loader import insert_jobs
+from ingestion.collector import JobCollector
+from ingestion.sources.usajobs import USAJobsSource
+from ingestion.sources.theirstack import TheirStackSource
+from ingestion.sources.adzuna import AdzunaSource
 
 KEYWORDS = [
     "intern",
@@ -34,25 +35,26 @@ def preview_jobs(jobs, n=5):
         print("-" * 40)
 
 def main():
-    client = USAJobsClient()
-    collector = JobCollector(client)
+    sources = [
+        USAJobsSource(),
+        #TheirStackSource(),
+        AdzunaSource()
+    ]
+
+    collector = JobCollector(sources=sources)
 
     print("Collecting jobs...")
 
-    raw_jobs = collector.collect(KEYWORDS, max_pages=10)
+    jobs = collector.collect(KEYWORDS, max_pages=20)
 
-    print(f"Total unique jobs: {len(raw_jobs)}")
+    print(f"Collected {len(jobs)} jobs")
 
-    cleaned_jobs = [transform_job(job) for job in raw_jobs]
-
-    print(f"Transformed {len(cleaned_jobs)} jobs")
-
-    preview_jobs(cleaned_jobs)
+    preview_jobs(jobs)
 
     db = Database()
     db.init()
 
-    insert_jobs(cleaned_jobs)
+    insert_jobs(jobs)
 
     print("Ingestion complete -> Jobs now stored in database")
 
